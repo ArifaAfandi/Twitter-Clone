@@ -1,0 +1,35 @@
+{
+  "name": "my-twitter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^1.0.6",
+    "emoji-picker-react": "^3.6.1",
+    "firebase": "^9.9.3",
+    "framer-motion": "^7.2.1",
+    "moment": "^2.29.4",
+    "next": "12.2.5",
+    "next-auth": "^4.10.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-modal": "^3.15.1",
+    "react-moment": "^1.1.2",
+    "recoil": "^0.7.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.10",
+    "@babel/preset-env": "^7.18.10",
+    "@tailwindcss/forms": "^0.5.2",
+    "autoprefixer": "^10.4.8",
+    "eslint": "8.22.0",
+    "eslint-config-next": "12.2.5",
+    "postcss": "^8.4.16",
+    "tailwindcss": "^3.1.8"
+  }
+}
