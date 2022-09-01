@@ -72,7 +72,7 @@ const Comments = ({ comment, commentId, originalPostId, id }) => {
                 <p className="text-gray-800 text-[15px] sm:text-[16px] mb-2">{comment?.comment}</p>
                 {/*icons*/}
                 <div className="flex justify-between text-gray-500 p-2">
-                    {session?.user.uid === comment?.userId && (
+                    {currentUser?.uid === comment?.userId && (
                         <TrashIcon onClick={() => {
                             if (!currentUser) {
                                 // signIn();
