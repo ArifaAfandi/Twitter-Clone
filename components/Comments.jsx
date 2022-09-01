@@ -6,6 +6,7 @@ import Moment from "react-moment"
 import { db } from "../firebase"
 import { userState } from "../atom/userAtom";
 import { useRouter } from "next/router"
+import { useRecoilState } from "recoil";
 
 
 const Comments = ({ comment, commentId, originalPostId, id }) => {
