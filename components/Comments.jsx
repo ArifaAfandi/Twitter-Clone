@@ -1,20 +1,18 @@
-import { ChartBarIcon, ChatIcon, DotsHorizontalIcon, HeartIcon, ShareIcon, TrashIcon } from "@heroicons/react/outline"
+import { ChartBarIcon, DotsHorizontalIcon, HeartIcon, ShareIcon, TrashIcon } from "@heroicons/react/outline"
 import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid"
 import { doc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore"
-import { deleteObject, ref } from "firebase/storage"
-import { signIn, useSession } from "next-auth/react"
-import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import Moment from "react-moment"
-import { useRecoilState } from "recoil"
-import { modalState, postIdState } from "../atom/modalAtom"
-import { db, storage } from "../firebase"
+import { db } from "../firebase"
+import { userState } from "../atom/userAtom";
+import { useRouter } from "next/router"
 
 
 const Comments = ({ comment, commentId, originalPostId, id }) => {
-    const { data: session } = useSession()
+    const router = useRouter()
     const [likes, setLikes] = useState([])
     const [hasLiked, setHasLiked] = useState([])
+    const [currentUser] = useRecoilState(userState);
 
     useEffect(() => onSnapshot(collection(db, "posts", originalPostId, "comments", commentId, "likes"),
         (snapshot) => {
@@ -25,22 +23,22 @@ const Comments = ({ comment, commentId, originalPostId, id }) => {
 
 
     useEffect(() => {
-        setHasLiked(likes.findIndex((like) => like.id === session?.user.uid) !== -1)
-    }, [likes])
+        setHasLiked(likes.findIndex((like) => like.id === currentUser?.uid) !== -1);
+    }, [likes, currentUser]);
 
     const likeComment = async () => {
-        if (session) {
+        if (currentUser) {
             if (hasLiked) {
-                await deleteDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", session?.user.uid))
+                await deleteDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", currentUser?.uid))
             }
             else {
-                await setDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", session?.user.uid), {
-                    username: session.user.username,
+                await setDoc(doc(db, "posts", originalPostId, "comments", commentId, "likes", currentUser?.uid), {
+                    username: currentUser?.username,
                 })
             }
         }
         else {
-            signIn()
+            router.push("/auth/signin");
         }
     }
 
@@ -75,8 +73,9 @@ const Comments = ({ comment, commentId, originalPostId, id }) => {
                 <div className="flex justify-between text-gray-500 p-2">
                     {session?.user.uid === comment?.userId && (
                         <TrashIcon onClick={() => {
-                            if (!session) {
-                                signIn()
+                            if (!currentUser) {
+                                // signIn();
+                                router.push("/auth/signin");
                             }
                             else {
                                 deleteComment()

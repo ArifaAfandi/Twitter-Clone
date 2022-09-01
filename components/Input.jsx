@@ -1,16 +1,19 @@
 import { EmojiHappyIcon, PhotographIcon, XIcon } from "@heroicons/react/outline";
-import { useSession, signOut } from "next-auth/react";
 import { useState, useRef } from "react";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db, storage } from "../firebase";
 import { getDownloadURL, uploadString, ref } from "firebase/storage";
+import { useRecoilState } from "recoil";
+import { userState } from "../atom/userAtom";
+import { signOut, getAuth } from "firebase/auth";
 
 const Input = () => {
-    const { data: session } = useSession();
+    const [currentUser, setCurrentUser] = useRecoilState(userState);
     const [input, setInput] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const filePickerRef = useRef(null);
+    const auth = getAuth();
 
 
     const addImagetoPost = (e) => {
@@ -24,17 +27,22 @@ const Input = () => {
         }
     }
 
+    function onSignOut() {
+        signOut(auth);
+        setCurrentUser(null);
+    }
+
     const sendPost = async () => {
         if (loading) return;
         setLoading(true);
 
         const docRef = await addDoc(collection(db, "posts"), {
-            id: session.user.uid,
+            id: currentUser.uid,
             text: input,
-            userImg: session.user.image,
+            userImg: currentUser.userImg,
             timestamp: serverTimestamp(),
-            name: session.user.name,
-            username: session.user.username
+            name: currentUser.name,
+            username: currentUser.username,
         })
 
         const imageRef = ref(storage, `posts/${docRef.id}/image`)
@@ -55,9 +63,9 @@ const Input = () => {
 
     return (
         <>
-            {session && (
+            {currentUser && (
                 <div className="flex border-b border-gray-200 p-3 space-x-3">
-                    <img onClick={signOut} title="Log Out" className="h-11 w-11 cursor-pointer hover:brightness-95 rounded-full" src={session.user.image} alt="User image" />
+                    <img onClick={onSignOut} title="Log Out" className="h-11 w-11 cursor-pointer hover:brightness-95 rounded-full" src={currentUser?.userImg} alt="User image" />
                     <div className="w-full divide-y divide-gray-200">
                         <div>
                             <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full border-none focus:ring-0 text-lg placeholder-gray-700 tracking-wide min-h-[50px] text-gray-700" rows="2" placeholder="What's happening?">
@@ -65,10 +73,10 @@ const Input = () => {
                         </div>
                         {selectedFile && (
                             <>
-                            <div className="relative">
-                                <XIcon onClick={() => setSelectedFile(null)} className="h-7 absolute cursor-pointer right-0 shadow-md rounded-full" />
-                                <img src={selectedFile} className={`${loading && "animate-pulse"}`} alt="" />
-                            </div>
+                                <div className="relative">
+                                    <XIcon onClick={() => setSelectedFile(null)} className="h-7 absolute cursor-pointer right-0 shadow-md rounded-full" />
+                                    <img src={selectedFile} className={`${loading && "animate-pulse"}`} alt="" />
+                                </div>
                             </>
                         )}
                         {!loading && (

@@ -2,7 +2,7 @@ import { ChartBarIcon, ChatIcon, DotsHorizontalIcon, HeartIcon, ShareIcon, Trash
 import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid"
 import { doc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore"
 import { deleteObject, ref } from "firebase/storage"
-import { signIn, useSession } from "next-auth/react"
+import { userState } from "../atom/userAtom"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import Moment from "react-moment"
@@ -12,7 +12,7 @@ import { db, storage } from "../firebase"
 
 
 const Post = ({ post, id }) => {
-    const { data: session } = useSession()
+    const [currentUser] = useRecoilState(userState)
     const [likes, setLikes] = useState([])
     const [comments, setComments] = useState([])
     const [hasLiked, setHasLiked] = useState([])
@@ -35,22 +35,23 @@ const Post = ({ post, id }) => {
         , [db])
 
     useEffect(() => {
-        setHasLiked(likes.findIndex((like) => like.id === session?.user.uid) !== -1)
-    }, [likes])
+        setHasLiked(likes.findIndex((like) => like.id === currentUser?.uid) !== -1);
+    }, [likes, currentUser]);
 
     const likePost = async () => {
-        if (session) {
+        if (currentUser) {
             if (hasLiked) {
-                await deleteDoc(doc(db, "posts", id, "likes", session?.user.uid))
+                await deleteDoc(doc(db, "posts", id, "likes", currentUser?.uid));
             }
             else {
-                await setDoc(doc(db, "posts", id, "likes", session?.user.uid), {
-                    username: session.user.username,
-                })
+                await setDoc(doc(db, "posts", id, "likes", currentUser?.uid), {
+                    username: currentUser?.username,
+                });
             }
         }
         else {
-            signIn()
+            // signIn();
+            router.push("/auth/signin");
         }
     }
 
@@ -93,8 +94,9 @@ const Post = ({ post, id }) => {
                 <div className="flex justify-between text-gray-500 p-2">
                     <div className="flex items-center">
                         <ChatIcon onClick={() => {
-                            if (!session) {
-                                signIn()
+                            if (!currentUser) {
+                                // signIn();
+                                router.push("/auth/signin");
                             }
                             else {
                                 setPostId(id)
@@ -107,7 +109,7 @@ const Post = ({ post, id }) => {
                             )
                         }
                     </div>
-                    {session?.user.uid === post?.data()?.id && (
+                    {currentUser?.uid === post?.data()?.id && (
                         <TrashIcon onClick={deletePost} className="h-9 w-9 hoverEffect p-2 hover:text-red-600 hover:bg-red-100" />
                     )}
                     <div className="flex items-center">

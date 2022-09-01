@@ -1,4 +1,4 @@
-import { EmojiHappyIcon, PhotographIcon, XIcon } from "@heroicons/react/outline";
+import { XIcon } from "@heroicons/react/outline";
 import { useRecoilState } from "recoil";
 import { modalState, postIdState } from "../atom/modalAtom";
 import Modal from "react-modal";
@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { doc, addDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
 import Moment from "react-moment";
-import { useSession } from "next-auth/react";
+import { userState } from "../atom/userAtom";
 import { useRouter } from "next/router";
 
 const CommentModal = () => {
@@ -14,7 +14,7 @@ const CommentModal = () => {
     const [post, setPost] = useState({})
     const [input, setInput] = useState("")
     const [postId] = useRecoilState(postIdState)
-    const { data: session } = useSession()
+    const [currentUser] = useRecoilState(userState);
     const [selectedFile, setSelectedFile] = useState(null)
     const router = useRouter()
 
@@ -25,11 +25,11 @@ const CommentModal = () => {
     const sendComment = async () => {
         await addDoc(collection(db, "posts", postId, "comments"), {
             comment: input,
-            name: session.user.name,
-            username: session.user.username,
-            userImg: session.user.image,
+            name: currentUser.name,
+            username: currentUser.username,
+            userImg: currentUser.userImg,
             timestamp: serverTimestamp(),
-            userId: session.user.uid,
+            userId: currentUser.uid,
         })
         setOpen(false)
         setInput("")
@@ -56,7 +56,7 @@ const CommentModal = () => {
                         </div>
                         <p className="text-gray-500 text-[15px] sm:text-[16px] ml-16 mb-2">{post?.data()?.text}</p>
                         <div className="flex p-3 space-x-3">
-                            <img className="h-11 w-11 cursor-pointer hover:brightness-95 rounded-full" src={session.user.image} alt="User image" />
+                            <img className="h-11 w-11 cursor-pointer hover:brightness-95 rounded-full" src={currentUser.userImg} alt="User image" />
                             <div className="w-full divide-y divide-gray-200">
                                 <div>
                                     <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full border-none focus:ring-0 text-lg placeholder-gray-700 tracking-wide min-h-[50px] text-gray-700" rows="2" placeholder="Tweet your reply..">
